@@ -37,11 +37,13 @@ int main(int args, char** argv)
     //     return EXIT_NULL;
     // }
 
-    if(!EHash_hash("555", outputHash, HASH_SIZE_BYTES))
+    if(!EHash_hash("575", outputHash, HASH_SIZE_BYTES))
     {
         printf("Hashing got failed for some reason\n");
         return EXIT_HASH_FAIL;
     }
+
+
 
     printf("eHash: %s\n", outputHash);
 

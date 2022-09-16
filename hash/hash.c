@@ -32,9 +32,9 @@
 ////////////////////////////////
 // PRIVATE METHODS
 
-uint32_t calculateInputChecksum_(const char* input, const uint32_t inputLength);
-bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLength, char* output, const uint32_t outputSize);
-
+static uint32_t calculateInputChecksum_(const char* input, const uint32_t inputLength);
+static bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLength, char* output, const uint32_t outputSize);
+static bool apply1BitSlidingAlgorithm_(const char* input, const uint32_t inputLength, char* output, const uint32_t outputSize);
 
 ////////////////////////////////
 // IMPLEMENTATION
@@ -59,13 +59,63 @@ bool EHash_hash(const char* text, char* output, const uint32_t outputSize)
         return ERROR;
     }
 
+    if(!apply1BitSlidingAlgorithm_(text, inputLength, output, outputSize))
+    {
+        // failed to calculate via sliding bit method
+        return ERROR;
+    }
+
+
     // On success
     return SUCCESS;
     
 }
 
 
-bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLength, char* output, const uint32_t outputSize)
+static bool apply1BitSlidingAlgorithm_(const char* input, const uint32_t inputLength, char* output, const uint32_t outputSize)
+{
+    uint8_t slidingMask;
+    uint32_t inputIdx;
+
+    slidingMask = 00000001; 
+    inputIdx = 0;
+
+    if(output == NULL || input == NULL || outputSize == 0 || inputLength == 0)
+    {
+        // something wrong with function input, may be heap leak
+        return ERROR;
+    }
+
+
+
+    for(uint32_t outputIdx = 0; outputIdx < outputSize; outputIdx++)
+    {
+        if(slidingMask == 128)         
+        {
+            slidingMask = 00000001; // when sliding mask reaches 1000 0000 byte state, should refresh to 0000 0001
+        }
+        
+        if(inputIdx > inputLength)
+        {
+            inputIdx = 0;           // overlooping input byte idx
+        }
+
+        for(uint32_t outputIdx2nd = 0; outputIdx2nd < outputSize; outputIdx2nd++)
+        {
+            output[outputIdx2nd] ^= (input[inputIdx] & slidingMask);
+            // mask gets applied to input first letter with and so we get 1 bit of input letter, 
+            // which we XOR with output letter / byte and continue, sliding mask keeps changing, so whole input makes importance to result.
+        }
+        slidingMask <<= 1;  // moving sliding mask ex: 00000010 << 00000001 ...
+        inputIdx++;
+    }
+
+    return SUCCESS;
+}
+
+
+
+static bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLength, char* output, const uint32_t outputSize)
 {
     uint32_t inputIdx;
 
@@ -98,7 +148,7 @@ bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLeng
  * @param[in] inputLength   input string length
  * @return                  bytes checksum number
  */
-uint32_t calculateInputChecksum_(const char* input, const uint32_t inputLength)
+static uint32_t calculateInputChecksum_(const char* input, const uint32_t inputLength)
 {
     uint32_t checksum;
     checksum = 0;
