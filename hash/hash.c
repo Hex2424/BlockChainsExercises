@@ -15,11 +15,30 @@
 #include "string.h"
 #include "stdlib.h"
 
+
+////////////////////////////////
+// DEFINES
 #define ERROR           0
 #define SUCCESS         1
 
+////////////////////////////////
+// PRIVATE CONSTANTS
 
+
+////////////////////////////////
+// PRIVATE TYPES
+
+
+////////////////////////////////
+// PRIVATE METHODS
+
+uint32_t calculateInputChecksum_(const char* input, const uint32_t inputLength);
 bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLength, char* output, const uint32_t outputSize);
+
+
+////////////////////////////////
+// IMPLEMENTATION
+
 
 /**
  * @brief Public method for hashing using eHash algorithm
@@ -51,7 +70,6 @@ bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLeng
     uint32_t inputIdx;
 
     inputIdx = 0;
-    
 
     for(uint32_t hashIdx = 0; hashIdx < outputSize; hashIdx++)
     {
@@ -79,7 +97,7 @@ bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLeng
  * @param[in] inputLength   input string length
  * @return                  bytes checksum number
  */
-uint32_t getInputChecksum_(const char* input, const uint32_t inputLength)
+uint32_t calculateInputChecksum_(const char* input, const uint32_t inputLength)
 {
     uint32_t checksum;
     checksum = 0;
