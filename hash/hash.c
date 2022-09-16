@@ -71,9 +71,10 @@ bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLeng
 
     inputIdx = 0;
 
+    srand(calculateInputChecksum_(input, inputLength));     // placing input string bytes checksum as random seed
+
     for(uint32_t hashIdx = 0; hashIdx < outputSize; hashIdx++)
     {
-        srand((int) input[inputIdx]);               // placing input bytes as seed values
         output[hashIdx] = (char) rand() % 256;      // getting remainder of 256 for random byte value
 
         if(inputIdx > inputLength)
