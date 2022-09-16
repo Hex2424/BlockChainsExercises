@@ -18,25 +18,26 @@
 #define EXIT_NULL               -1
 #define EXIT_HASH_FAIL          -2
 
-#define HASH_SIZE_BYTES         64
+
+#define HASH_SIZE               256
+#define HASH_SIZE_BYTES         (HASH_SIZE / 4)
 
 
 int main(int args, char** argv)
 {
     char outputHash[HASH_SIZE_BYTES];
 
-    if(args == 1 || args > 2)
-    {
-        printf("Program takes 1 argument - text to hash\n");
-        return EXIT_SUCCESS;
-    }
-    if(argv[1] == NULL)
-    {
-        return EXIT_NULL;
-    }
+    // if(args == 1 || args > 2)
+    // {
+    //     printf("Program takes 1 argument - text to hash\n");
+    //     return EXIT_SUCCESS;
+    // }
+    // if(argv[1] == NULL)
+    // {
+    //     return EXIT_NULL;
+    // }
 
-
-    if(!EHash_hash(argv[1], outputHash))
+    if(!EHash_hash("555", outputHash, HASH_SIZE_BYTES))
     {
         printf("Hashing got failed for some reason\n");
         return EXIT_HASH_FAIL;
