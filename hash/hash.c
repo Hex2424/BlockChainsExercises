@@ -15,7 +15,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include <stdio.h>
-
+#include "random/random.h"
 ////////////////////////////////
 // DEFINES
 #define ERROR           0
@@ -67,6 +67,8 @@ bool EHash_hash(const char* text, char* output, const uint32_t outputSize)
         return ERROR;
     }
 
+        // printf("%d\n", output[0]);
+
     if(!formatOutputAsHexadecimal_(output, outputSize))
     {
         return ERROR;
@@ -100,21 +102,23 @@ static bool apply1BitSlidingAlgorithm_(const char* input, const uint32_t inputLe
     for(uint32_t outputIdx = 0; outputIdx < maxSize; outputIdx++)
     {
 
-        if(slidingMask == 128)         
-        {
-            slidingMask = 1; // when sliding mask reaches 1000 0000 byte state, should refresh to 0000 0001
-        }
+        // if(slidingMask == 128)         
+        // {
+        //     slidingMask = 1; // when sliding mask reaches 1000 0000 byte state, should refresh to 0000 0001
+        // }
 
-        if(inputIdx > inputLength)
+        if(inputIdx >= inputLength)
         {
             inputIdx = 0;           // overlooping input byte idx
         }
-
-        srand(input[inputIdx]);
+        // printf("%d\n", input[inputIdx]);
+        Random_fast_srand((int) input[inputIdx]);
 
         for(uint32_t outputIdx2nd = outputIdx; outputIdx2nd < outputSize; outputIdx2nd++)
         {
-            output[outputIdx2nd] ^= rand() % 256;
+            // printf("%d\n", outputIdx);
+
+            output[outputIdx2nd] ^= Random_fast_rand() % 256;
             // output[outputIdx2nd] ^= slidingMask;
 
             // printf("(%d, %d, %d)\n", input[inputIdx], slidingMask, input[inputIdx] & slidingMask);
@@ -142,7 +146,7 @@ static bool apply1BitSlidingAlgorithm_(const char* input, const uint32_t inputLe
             // mask gets applied to input first letter with and so we get 1 bit of input letter, 
             // which we XOR with output letter / byte and continue, sliding mask keeps changing, so whole input makes importance to result.
         }
-        slidingMask <<= 1;
+        // slidingMask <<= 1;
         inputIdx++;
     }
 
@@ -164,11 +168,11 @@ static bool generateInputSeededInitialHash_(const char* input, const uint32_t in
 
     inputIdx = 0;
 
-    srand(calculateInputChecksum_(input, inputLength));     // placing input string bytes checksum as random seed
+    Random_fast_srand((int) calculateInputChecksum_(input, inputLength));     // placing input string bytes checksum as random seed
 
     for(uint32_t hashIdx = 0; hashIdx < outputSize; hashIdx++)
     {
-        output[hashIdx] = (char) rand() % 256;      // getting remainder of 256 for random byte value
+        output[hashIdx] = Random_fast_rand() % 256;      // getting remainder of 256 for random byte value
 
         if(inputIdx > inputLength)
         {
@@ -208,5 +212,6 @@ static uint32_t calculateInputChecksum_(const char* input, const uint32_t inputL
     {
         checksum += input[inputIdx];
     }
-    return checksum;
+
+    return checksum ^ 24;
 }

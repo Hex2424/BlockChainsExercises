@@ -14,7 +14,7 @@
 #define HASH_RANDOM_H_
 
 
-inline void Random_fast_srand(int seed);
-inline int Random_fast_rand();
+void Random_fast_srand(int seed);
+int Random_fast_rand();
 
 #endif // HASH_RANDOM_H_
