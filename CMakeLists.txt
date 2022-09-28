@@ -5,6 +5,7 @@ set(PROJECT_STRING "HashAlgorithm")
 set(SRC 
 main/main.c
 hash/hash.c
+hash/random/random.c
 )
 
 cmake_minimum_required(VERSION 3.3)
