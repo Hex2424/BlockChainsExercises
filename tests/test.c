@@ -19,7 +19,7 @@ typedef struct timeval Timeval;
 
 void printMatavimaLaiko(Timeval* start, Timeval* stop)
 {
-    //printf("Uztruko %f s\n",((stop->tv_sec - start->tv_sec) * 1000000 + stop->tv_usec - start->tv_usec)/1000000.0);
+    printf("Uztruko %f s\n",((stop->tv_sec - start->tv_sec) * 1000000 + stop->tv_usec - start->tv_usec)/1000000.0);
 }
 
 #define COUNT_INTERRUPT(stop, start, function) \
@@ -70,17 +70,22 @@ int main()
 {
     struct timeval start, stop;
     char* input;
-    char output[64];
+    char output[64] = {0};
 
-    FILE* file = fopen("../test_files/LT-Top500k.txt", "r");
+    FILE* file = fopen("../test_files/10millions.txt", "r");
     fseek(file,0L, SEEK_END);
     int fileSize = ftell(file);
     input = malloc(fileSize);
     rewind(file);
     fread(input, 1, fileSize, file);
 
-
-
+    COUNT_INTERRUPT(&stop, &start,
+    for(int j = 0; j < 5; j++)
+        {
+            EHash_hash(input, fileSize, output, sizeof(output));
+        }
+    );
+    printf("%s\n", output);
     // for(int i = 1; i < 500000; i *= 2)
     // {
 
