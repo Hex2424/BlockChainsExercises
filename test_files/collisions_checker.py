@@ -13,7 +13,7 @@ for i in range(len(lines)):
 
     
 
-    proc = subprocess.Popen("./build/HashAlgorithm " + lines[i],shell=True, stdout=subprocess.PIPE)
+    proc = subprocess.Popen("../build/HashAlgorithm " + lines[i],shell=True, stdout=subprocess.PIPE)
     output = proc.stdout.read()
     # print(output)
 
