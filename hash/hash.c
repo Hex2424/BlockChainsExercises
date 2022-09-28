@@ -48,20 +48,19 @@ static bool formatOutputAsHexadecimal_(char* output, const uint32_t outputSize);
  * @param[in] text          input string for hashing
  * @param[out] output       output string for hashing
  * @param[in] outputSize    output size in bytes
+ * @param[in] inputSize     input size in bytes
  * @return                  Success State 
  */
-bool EHash_hash(const char* text, char* output, const uint32_t outputSize)
+bool EHash_hash(const char* text, const uint32_t inputSize, char* output, const uint32_t outputSize)
 {
-    uint32_t inputLength;
 
-    inputLength = strlen(text);
-    if(!generateInputSeededInitialHash_(text, inputLength,output, outputSize))
+    if(!generateInputSeededInitialHash_(text, inputSize,output, outputSize))
     {
         // failed to generate initial hash
         return ERROR;
     }
 
-    if(!apply1BitSlidingAlgorithm_(text, inputLength, output, outputSize))
+    if(!apply1BitSlidingAlgorithm_(text, inputSize, output, outputSize))
     {
         // failed to calculate via sliding bit method
         return ERROR;

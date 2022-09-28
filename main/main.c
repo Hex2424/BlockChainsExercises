@@ -28,6 +28,7 @@ int main(int args, char** argv)
 {
     char outputHash[HASH_SIZE_BYTES] = {0};
     char* input = NULL;
+    uint32_t inputSize = 0;
 
     if(args == 1)
     {
@@ -53,19 +54,32 @@ int main(int args, char** argv)
             fseek(file,0L, SEEK_END);
             int fileSize = ftell(file);
             rewind(file);
-            input = malloc(fileSize);               // putting input to RAM
 
-            if(input == NULL)
+            if(fileSize > 0)
             {
-                printf("Failed to allocate buffer for file size: %d\n", fileSize);
-                return EXIT_SUCCESS;
+                input = malloc(fileSize);             // putting input to RAM
+                if(input == NULL)
+                {
+                    printf("Failed to allocate buffer for file size: %d\n", fileSize);
+                    return EXIT_SUCCESS;
+                }
+
+                if(fread(input, 1, fileSize, file) != fileSize)
+                {
+                    printf("Failed to read mentioned file: %s\n", argv[2]);
+                    return EXIT_SUCCESS;
+                }
+                inputSize = fileSize;
+
+            }else
+            {
+                input = malloc(1);
+                input[0] = 0;
+                inputSize = 1;
             }
 
-            if(fread(input, 1, fileSize, file) != fileSize)
-            {
-                printf("Failed to read mentioned file: %s\n", argv[2]);
-                return EXIT_SUCCESS;
-            }
+
+
         }else
         {
             printf("Program takes 1 argument - text to hash\n");
@@ -73,15 +87,18 @@ int main(int args, char** argv)
         }
     }
 
-    if(input == NULL)
-    {
-        input = argv[1];
-    }
-  
     if(argv[1] == NULL)
     {
         return EXIT_NULL;
     }
+
+    if(input == NULL)
+    {
+        input = argv[1];
+        inputSize = strlen(input);
+    }
+  
+
 
     //  for(int i = 0; i < HASH_SIZE_BYTES; i++)
     // {
@@ -89,7 +106,7 @@ int main(int args, char** argv)
     // }
     // printf("\n");
 
-    if(!EHash_hash(input, outputHash, HASH_SIZE_BYTES))
+    if(!EHash_hash(input, inputSize, outputHash, HASH_SIZE_BYTES))
     {
         printf("Hashing got failed for some reason\n");
         return EXIT_HASH_FAIL;

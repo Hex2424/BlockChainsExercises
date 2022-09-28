@@ -22,6 +22,6 @@
        __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b; })
 
-bool EHash_hash(const char* text, char* output, const uint32_t outputSize);
+bool EHash_hash(const char* text, const uint32_t inputSize, char* output, const uint32_t outputSize);
 
 #endif // HASH_HASH_H_
