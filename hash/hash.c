@@ -14,16 +14,17 @@
 #include "hash.h"
 #include "string.h"
 #include "stdlib.h"
-
+#include <stdio.h>
 
 ////////////////////////////////
 // DEFINES
 #define ERROR           0
 #define SUCCESS         1
 
+
 ////////////////////////////////
 // PRIVATE CONSTANTS
-
+static const char hexAlphabet[] = "abcdef0123456789";
 
 ////////////////////////////////
 // PRIVATE TYPES
@@ -35,6 +36,7 @@
 static uint32_t calculateInputChecksum_(const char* input, const uint32_t inputLength);
 static bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLength, char* output, const uint32_t outputSize);
 static bool apply1BitSlidingAlgorithm_(const char* input, const uint32_t inputLength, char* output, const uint32_t outputSize);
+static bool formatOutputAsHexadecimal_(char* output, const uint32_t outputSize);
 
 ////////////////////////////////
 // IMPLEMENTATION
@@ -65,6 +67,11 @@ bool EHash_hash(const char* text, char* output, const uint32_t outputSize)
         return ERROR;
     }
 
+    if(!formatOutputAsHexadecimal_(output, outputSize))
+    {
+        return ERROR;
+    }
+
 
     // On success
     return SUCCESS;
@@ -76,8 +83,10 @@ static bool apply1BitSlidingAlgorithm_(const char* input, const uint32_t inputLe
 {
     uint8_t slidingMask;
     uint32_t inputIdx;
+    uint32_t checksum;
+    uint32_t maxSize;
 
-    slidingMask = 00000001; 
+    slidingMask = 1;
     inputIdx = 0;
 
     if(output == NULL || input == NULL || outputSize == 0 || inputLength == 0)
@@ -85,35 +94,69 @@ static bool apply1BitSlidingAlgorithm_(const char* input, const uint32_t inputLe
         // something wrong with function input, may be heap leak
         return ERROR;
     }
+    maxSize = max(outputSize, inputLength);
 
 
-
-    for(uint32_t outputIdx = 0; outputIdx < outputSize; outputIdx++)
+    for(uint32_t outputIdx = 0; outputIdx < maxSize; outputIdx++)
     {
+
         if(slidingMask == 128)         
         {
-            slidingMask = 00000001; // when sliding mask reaches 1000 0000 byte state, should refresh to 0000 0001
+            slidingMask = 1; // when sliding mask reaches 1000 0000 byte state, should refresh to 0000 0001
         }
-        
+
         if(inputIdx > inputLength)
         {
             inputIdx = 0;           // overlooping input byte idx
         }
 
-        for(uint32_t outputIdx2nd = 0; outputIdx2nd < outputSize; outputIdx2nd++)
+        srand(input[inputIdx]);
+
+        for(uint32_t outputIdx2nd = outputIdx; outputIdx2nd < outputSize; outputIdx2nd++)
         {
-            output[outputIdx2nd] ^= (input[inputIdx] & slidingMask);
+            output[outputIdx2nd] ^= rand() % 256;
+            // output[outputIdx2nd] ^= slidingMask;
+
+            // printf("(%d, %d, %d)\n", input[inputIdx], slidingMask, input[inputIdx] & slidingMask);
+
+            // if(outputIdx2nd % 2 == 0)
+            // {
+            //     output[outputIdx2nd] ^= 136;
+            // }
+            // if((input[inputIdx] & (slidingMask)) == 0)
+            // {
+            //     output[outputIdx2nd] ^= 78;
+            // }
+
+            // if(inputIdx == 0 || outputIdx % 2 == 1)
+            // {
+            //     output[outputIdx2nd] ^= 75;
+            // }
+
+
+            // // printf("ZERO BIT%d", input[inputIdx] & (slidingMask));
+            // output[outputIdx2nd] ^= (input[inputIdx] & (slidingMask));
+
+            // moving sliding mask ex: 00000010 << 00000001 ...
+            // output[outputIdx2nd] ^= (slidingMask + outputIdx2nd);
             // mask gets applied to input first letter with and so we get 1 bit of input letter, 
             // which we XOR with output letter / byte and continue, sliding mask keeps changing, so whole input makes importance to result.
         }
-        slidingMask <<= 1;  // moving sliding mask ex: 00000010 << 00000001 ...
+        slidingMask <<= 1;
         inputIdx++;
     }
 
     return SUCCESS;
 }
 
-
+static bool formatOutputAsHexadecimal_(char* output, const uint32_t outputSize)
+{
+    for(uint32_t outputIdx = 0; outputIdx < outputSize; outputIdx++)
+    {
+        output[outputIdx] = (char) hexAlphabet[((uint8_t) output[outputIdx]) % (sizeof(hexAlphabet) - 1)];
+    }
+    return SUCCESS;
+}
 
 static bool generateInputSeededInitialHash_(const char* input, const uint32_t inputLength, char* output, const uint32_t outputSize)
 {
@@ -156,6 +199,7 @@ static uint32_t calculateInputChecksum_(const char* input, const uint32_t inputL
     if(input == NULL || inputLength == 0)
     {
         // null input given
+        printf("input is null or inputlength not given\n");
         return ERROR;
     }
 
