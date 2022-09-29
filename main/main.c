@@ -20,7 +20,7 @@
 #define EXIT_HASH_FAIL          -2
 
 
-#define HASH_SIZE               64
+#define HASH_SIZE               256
 #define HASH_SIZE_BYTES         (HASH_SIZE / 4)
 
 

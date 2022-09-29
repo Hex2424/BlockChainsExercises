@@ -3,7 +3,7 @@ import subprocess
 
 hashmap = {}
 
-wordlist = open("LT-Top500k.txt", 'r')
+wordlist = open("200000_phrases.txt", 'r')
 lines = wordlist.readlines()
 
 for i in range(len(lines)):
@@ -11,9 +11,12 @@ for i in range(len(lines)):
     if "#" in lines[i]:
         continue
 
-    
+    file = open("tempFile.txt", 'w')
+    file.write(lines[i])
+    file.close()
 
-    proc = subprocess.Popen("../build/HashAlgorithm " + lines[i],shell=True, stdout=subprocess.PIPE)
+    proc = subprocess.Popen("../build/HashAlgorithm -f tempFile.txt",shell=True, stdout=subprocess.PIPE)
+
     output = proc.stdout.read()
     # print(output)
 
