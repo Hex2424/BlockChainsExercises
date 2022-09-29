@@ -56,17 +56,61 @@ ca70a0f94ee3cbe5381b7d081dcff1628bcbe8a9d9fe2a2a27230120ef10a85c
 
 ## 3. Efektyvumo analize: ##
 
-![Alt text](/greicio_testas.png?raw=true "Optional Title")
-lines -> time(seconds)
-* 1 -> 0.000030 (s)
-* 2 -> 0.000035 (s)
-* 4 -> 0.000034 (s)
-* 8 -> 0.000037 (s)
-* 16 -> 0.000063 (s)
-* 32 -> 0.000068 (s)
-* 64 -> 0.000109 (s)
-* 128 -> 0.000229 (s)
-* 256 -> 0.000514 (s)
-* 512 -> 0.001228 (s)
+ - Debug
+    ![Alt text](/greicio_testas.png?raw=true "Optional Title")
+    lines -> time(seconds)
+    * 1 -> 0.000030 (s)
+    * 2 -> 0.000035 (s)
+    * 4 -> 0.000034 (s)
+    * 8 -> 0.000037 (s)
+    * 16 -> 0.000063 (s)
+    * 32 -> 0.000068 (s)
+    * 64 -> 0.000109 (s)
+    * 128 -> 0.000229 (s)
+    * 256 -> 0.000514 (s)
+    * 512 -> 0.001228 (s)
 
-**- 10 millions file hashed in 0.285256 s**
+**- 10 millions file hashed in debug mode: 0.285256 s**
+- Release
+    * 1 -> 0.000018 (s)
+    * 2 -> 0.000029 (s)
+    * 4 -> 0.000047 (s)
+    * 8 -> 0.000019 (s)
+    * 16 -> 0.000028 (s)
+    * 32 -> 0.000029 (s)
+    * 64 -> 0.000041 (s)
+    * 128 -> 0.000081 (s)
+    * 256 -> 0.000157 (s)
+    * 512 -> 0.000357 (s)
+
+**- 10 millions file hashed in release mode: 0.119841 s**
+
+
+## 4 - 5. Collisionu testai: ##
+
+* Testavimo failas su 500k lietuvisku slaptozodziu - Ne karto nesikartojo hashas
+* Testavimo failas su poromis skirtingo ilgio 200k - Ne karto nesikartojo
+
+```txt
+Kadangi hashas supportina betkokio bitų ilgio output, testavau 500k collisionų failą su 64bit output hashu (16 baitų ilgio), nebuvo nė karto collisiono 500k dydžio faile.
+```
+
+## 6. Sutapimu testai: ##
+```txt
+Testuota su 200k poru failu
+```
+* **Baitų** lygio sutapimai : **393883** kartų arba **6.1544%**
+* **Bitų** lygio sutapimai  : **27878077** kartų arba **54.4494%**
+
+## 7. Apibendrinimas: ##
+
+- Privalumai
+
+    * Hashas gali but nustatomas betkokio ilgio bitų (ne tik 256)
+    * Nenustatyta praktikoje collisionu
+    * Pakankamai didelis efektyvumas (O(n) sudėtingumas)
+    * Kuo didesnis failas, tuo geriau sumaišoma
+
+- Trūkumai
+    * Gali atsirast spragų hasho pradžioje, ji yra mažiau išmaišoma kai inputas mažas.
+    * Bitų lygmens sutapimas gan aukštas. (4% didesnis nei norma)
