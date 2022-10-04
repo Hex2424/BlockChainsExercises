@@ -98,26 +98,14 @@ int main(int args, char** argv)
         inputSize = strlen(input);
     }
   
-
-
-    //  for(int i = 0; i < HASH_SIZE_BYTES; i++)
-    // {
-    //     printf("%02X ", (uint8_t) outputHash[i]);
-    // }
-    // printf("\n");
-
     if(!EHash_hash(input, inputSize, outputHash, HASH_SIZE_BYTES))
     {
         printf("Hashing got failed for some reason\n");
         return EXIT_HASH_FAIL;
     }
 
-    // for(int i = 0; i < HASH_SIZE_BYTES; i++)
-    // {
-    //     printf("%d ", outputHash[i]);
-    // }
     printf("%s\n", outputHash);
-    // printf("eHash: %s\n", outputHash);
+
 
     return EXIT_SUCCESS;
 }
