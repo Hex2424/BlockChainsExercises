@@ -114,3 +114,17 @@ Testuota su 200k poru failu
 - Trūkumai
     * Gali atsirast spragų hasho pradžioje, ji yra mažiau išmaišoma kai inputas mažas.
     * Bitų lygmens sutapimas gan aukštas. (4% didesnis nei norma)
+
+
+## Papildomos ##
+
+- Lyginimo lentelė su populiariais algoritmais (sha1, sha256, md5, md2)
+    ![Alt text](/lyginimo_lentele.png?raw=true "Optional Title")
+- Grafikas
+    ![Alt text](/lyginimas_grafikas.png?raw=true "Optional Title")
+* Kadangi md2 akivaizdžiai eksponentiškai kyla priklausomai nuo ilgio, sunku matuoti kitus hashus, todėl jį išėmiau kitame grafike.
+
+- Grafikas be MD2
+    ![Alt text](/lyginimas_grafikas_nomd2.png?raw=true "Optional Title")
+
+* **Mano hashas greičiausiai performino tarp kitų hashu dideliuose inputuose, bet labai tikėtina jog saugumo prasme nėra saugus pakankamai, ir turi didesnį šansą collisionams.**
