@@ -87,7 +87,7 @@ int main()
     SHA256_CTX sha256_ctx;
 
     srand(156);
-    printf("size,md2,md5,sha1,sha256");
+    printf("size,md2,md5,sha1,sha256,ehash\n");
 
     // generating random array
     for(int i = 1;i < 10000000; i *= 2)
@@ -105,7 +105,7 @@ int main()
         }
 
         calculateHashes(buffer, i, &md2_ctx, &md5_ctx, &sha1_ctx, &sha256_ctx);
-        
+
         free(buffer);
     }
 

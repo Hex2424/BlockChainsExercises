@@ -118,7 +118,8 @@ Testuota su 200k poru failu
 
 ## Papildomos ##
 
-- Lyginimo lentelė su populiariais algoritmais (sha1, sha256, md5, md2)
+- Lyginimo lentelė (be O3 optimizacijos) su populiariais algoritmais (sha1, sha256, md5, md2)
+
     ![Alt text](/lyginimo_lentele.png?raw=true "Optional Title")
 - Grafikas
     ![Alt text](/lyginimas_grafikas.png?raw=true "Optional Title")
@@ -126,5 +127,13 @@ Testuota su 200k poru failu
 
 - Grafikas be MD2
     ![Alt text](/lyginimas_grafikas_nomd2.png?raw=true "Optional Title")
+
+- Lyginimo lentelė (su O3 optimizacija) su populiariais algoritmais (sha1, sha256, md5, md2)
+
+    ![Alt text](/lyginimas_o3.png?raw=true "Optional Title")
+
+- Lyginimo grafikas (su O3 optimizacija) su populiariais algoritmais (sha1, sha256, md5, md2)
+
+![Alt text](/lyginimas_grafikaso3.png?raw=true "Optional Title")
 
 * **Mano hashas greičiausiai performino tarp kitų hashu dideliuose inputuose, bet labai tikėtina jog saugumo prasme nėra saugus pakankamai, ir turi didesnį šansą collisionams.**
