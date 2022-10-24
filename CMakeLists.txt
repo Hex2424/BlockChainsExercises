@@ -10,6 +10,8 @@ set(SRC
 main/main.c
 hash/hash.c
 hash/random/random.c
+blockchain/blockchain_engine.c
+blockchain/structures/structures.c
 )
 
 cmake_minimum_required(VERSION 3.3)
