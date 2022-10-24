@@ -101,51 +101,18 @@ static bool apply1BitSlidingAlgorithm_(const char* input, const uint32_t inputLe
     for(uint32_t outputIdx = 0; outputIdx < maxSize; outputIdx++)
     {
 
-        // if(slidingMask == 128)         
-        // {
-        //     slidingMask = 1; // when sliding mask reaches 1000 0000 byte state, should refresh to 0000 0001
-        // }
-
         if(inputIdx >= inputLength)
         {
             inputIdx = 0;           // overlooping input byte idx
         }
-        // printf("%d\n", input[inputIdx]);
+
         Random_fast_srand((int) input[inputIdx]);
 
         for(uint32_t outputIdx2nd = outputIdx; outputIdx2nd < outputSize; outputIdx2nd++)
         {
-            // printf("%d\n", outputIdx);
-
             output[outputIdx2nd] ^= Random_fast_rand() % 256;
-            // output[outputIdx2nd] ^= slidingMask;
-
-            // printf("(%d, %d, %d)\n", input[inputIdx], slidingMask, input[inputIdx] & slidingMask);
-
-            // if(outputIdx2nd % 2 == 0)
-            // {
-            //     output[outputIdx2nd] ^= 136;
-            // }
-            // if((input[inputIdx] & (slidingMask)) == 0)
-            // {
-            //     output[outputIdx2nd] ^= 78;
-            // }
-
-            // if(inputIdx == 0 || outputIdx % 2 == 1)
-            // {
-            //     output[outputIdx2nd] ^= 75;
-            // }
-
-
-            // // printf("ZERO BIT%d", input[inputIdx] & (slidingMask));
-            // output[outputIdx2nd] ^= (input[inputIdx] & (slidingMask));
-
-            // moving sliding mask ex: 00000010 << 00000001 ...
-            // output[outputIdx2nd] ^= (slidingMask + outputIdx2nd);
-            // mask gets applied to input first letter with and so we get 1 bit of input letter, 
-            // which we XOR with output letter / byte and continue, sliding mask keeps changing, so whole input makes importance to result.
         }
-        // slidingMask <<= 1;
+
         inputIdx++;
     }
 

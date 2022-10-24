@@ -97,6 +97,7 @@ int main(int args, char** argv)
         input = argv[1];
         inputSize = strlen(input);
     }
+    
   
     if(!EHash_hash(input, inputSize, outputHash, HASH_SIZE_BYTES))
     {
