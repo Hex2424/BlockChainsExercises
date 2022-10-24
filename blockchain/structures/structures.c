@@ -71,9 +71,9 @@ typedef struct
 }BlockBody_t;
 
 typedef struct
-{
-    uint64_t name;
+{   
     char publicKey[HASH_BYTES_LENGTH];
+    uint64_t name;
     int64_t balance;   
 }User_t;
 
