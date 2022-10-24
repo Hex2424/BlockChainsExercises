@@ -23,7 +23,9 @@
 #define ERROR   0
 
 typedef struct TransactionNode_t* TransactionNodeHandle_t;
-typedef struct BlockchainNode_t* BlockchainNodeHandle_t;
+
+typedef struct blockchnode BlockchainNode_t;
+typedef struct blockchnode * BlockchainNodeHandle_t;
 
 typedef struct
 {
@@ -39,7 +41,7 @@ typedef struct
     uint64_t nonce;
     uint64_t timestamp;
     uint8_t difficultyTarget;
-
+    
 }BlockHeader_t;
 
 
@@ -79,11 +81,11 @@ typedef struct
     int64_t balance;   
 }User_t;
 
-typedef struct
+struct blockchnode
 {
     Block_t block;
     BlockchainNodeHandle_t prevBlock;
-}BlockchainNode_t;
+};
 
 typedef struct 
 {

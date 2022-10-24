@@ -23,6 +23,5 @@ int main(int args, char** argv)
         return -1;
     }
 
-    BlockchainEngine_printBlock(&engine.blockchain.block);
-
+    // BlockchainEngine_mineNewBlock(&engine);
 }

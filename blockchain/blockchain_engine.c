@@ -33,6 +33,7 @@
 ////////////////////////////////
 // PRIVATE METHODS
 
+static void generateHashForBlock_(BlockHandle_t block);
 
 
 ////////////////////////////////
@@ -42,9 +43,9 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
 {
     // blockchainEngine
 
-    blockchainEngine->blockchain.block.header.timestamp = time(NULL);
+    blockchainEngine->blockchain.block.header.timestamp = 1;
     blockchainEngine->blockchain.block.header.difficultyTarget = 1;
-    blockchainEngine->blockchain.block.header.nonce = 0;
+    blockchainEngine->blockchain.block.header.nonce = 1;
     
     // generating merkelRootHash
 
@@ -61,18 +62,27 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
 
     strcpy(blockchainEngine->blockchain.block.header.prevBlockHash, GENESIS_NULL_HASH);
 
-    if(!EHash_hash(&blockchainEngine->blockchain.block.header,
+    generateHashForBlock_(&blockchainEngine->blockchain.block);
+
+    blockchainEngine->blockchain.block.blockHash[HASH_BYTES_LENGTH - 1] = '\0';
+    blockchainEngine->blockchain.prevBlock = NULL;
+
+    BlockchainEngine_printBlock(&blockchainEngine->blockchain.block);
+    return SUCCESS;
+}
+
+static void generateHashForBlock_(BlockHandle_t block)
+{
+    if(!EHash_hash(&block->header,
         sizeof(BlockHeader_t),
-        blockchainEngine->blockchain.block.blockHash,
+        block->blockHash,
         HASH_BYTES_LENGTH))
     {
         printf("Error occured on hashing process\n");
-        return ERROR;
+        return;
     }
-    blockchainEngine->blockchain.block.blockHash[HASH_BYTES_LENGTH - 1] = '\0';
-
-    return SUCCESS;
 }
+
 
 bool BlockchainEngine_printBlock(BlockHandle_t blockHandle)
 {
@@ -89,3 +99,60 @@ bool BlockchainEngine_printBlock(BlockHandle_t blockHandle)
     blockHandle->header.prevBlockHash);
     return SUCCESS;
 }
+
+bool BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t blockchainEngine)
+{
+    BlockchainNodeHandle_t prevBlockPointer;
+    bool foundBlock = false;
+
+    prevBlockPointer = &blockchainEngine->blockchain;
+
+    while (true)
+    {
+        if(prevBlockPointer->prevBlock == NULL)
+        {
+            break;
+        }
+        prevBlockPointer = prevBlockPointer->prevBlock;
+    }
+
+    BlockchainNodeHandle_t newNode;
+
+    newNode = malloc(sizeof(BlockchainNode_t));
+    if(newNode == NULL)
+    {
+        return ERROR;
+    }
+    newNode->block.header.timestamp = 1;
+    newNode->block.header.merkelRootHash;
+    memset(newNode->block.header.merkelRootHash, '0', HASH_BYTES_LENGTH);
+    newNode->block.header.difficultyTarget = 1;
+    memcpy(newNode->block.header.prevBlockHash, prevBlockPointer->block.blockHash, HASH_BYTES_LENGTH);
+
+    for(newNode->block.header.nonce = 0; newNode->block.header.nonce < UINT64_MAX; newNode->block.header.nonce++)
+    {
+        generateHashForBlock_(&newNode->block);
+        // printf("%s\n",newNode->block.blockHash);
+        // BlockchainEngine_printBlock(newNode);
+
+        for(uint8_t charIdx = 0; charIdx < newNode->block.header.difficultyTarget; charIdx++)
+        {
+            if(newNode->block.blockHash[HASH_BYTES_LENGTH - charIdx - 1] != '0')
+            {
+                foundBlock = false;
+                break;
+            }
+
+            foundBlock = true;
+
+        }
+        if(foundBlock)
+        {
+            BlockchainEngine_printBlock(newNode);
+            break;
+        }
+
+    }
+}
+
+

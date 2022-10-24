@@ -18,5 +18,5 @@
 
 bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine);
 bool BlockchainEngine_printBlock(BlockHandle_t blockHandle);
-
+bool BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t blockchainEngine);
 #endif // BLOCKCHAIN_BLOCKCHAIN_ENGINE_H_
