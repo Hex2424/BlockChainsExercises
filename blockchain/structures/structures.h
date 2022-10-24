@@ -17,20 +17,81 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define HASH_BYTES_LENGTH   256 / 4
+#define HASH_BYTES_LENGTH   256 / 4 + 1
 
-typedef struct Block_t;
-typedef struct BlockHeader_t;
-typedef struct BlockBody_t;
-typedef struct Version_t;
-typedef struct Transaction_t;
-typedef struct TransactionNode_t;
-typedef struct User_t;
-typedef struct BlockchainNode_t;
-typedef struct BlockchainEngine_t;
+#define SUCCESS 1
+#define ERROR   0
 
-typedef struct BlockchainEngine_t* BlockchainEngineHandle_t;
 typedef struct TransactionNode_t* TransactionNodeHandle_t;
 typedef struct BlockchainNode_t* BlockchainNodeHandle_t;
+
+typedef struct
+{
+    uint8_t major;
+    uint8_t minor;
+}Version_t;
+
+
+typedef struct
+{
+    char prevBlockHash[HASH_BYTES_LENGTH];
+    char merkelRootHash[HASH_BYTES_LENGTH];
+    uint64_t nonce;
+    uint64_t timestamp;
+    uint8_t difficultyTarget;
+
+}BlockHeader_t;
+
+
+typedef struct 
+{
+    char transactionId[HASH_BYTES_LENGTH];
+    char sender[HASH_BYTES_LENGTH];
+    char receiver[HASH_BYTES_LENGTH];
+    uint64_t sum;
+}Transaction_t;
+
+
+
+typedef struct 
+{
+    Transaction_t transaction;
+    TransactionNodeHandle_t prevTransaction;
+}TransactionNode_t;
+
+
+typedef struct
+{
+    TransactionNode_t transactions;
+}BlockBody_t;
+
+typedef struct
+{
+    char blockHash[HASH_BYTES_LENGTH];
+    BlockHeader_t header;
+    BlockBody_t body;
+}Block_t;
+
+typedef struct
+{   
+    char publicKey[HASH_BYTES_LENGTH];
+    uint64_t name;
+    int64_t balance;   
+}User_t;
+
+typedef struct
+{
+    Block_t block;
+    BlockchainNodeHandle_t prevBlock;
+}BlockchainNode_t;
+
+typedef struct 
+{
+    BlockchainNode_t blockchain;
+}BlockchainEngine_t;
+
+typedef BlockchainEngine_t* BlockchainEngineHandle_t;
+typedef Block_t* BlockHandle_t;
+
 
 #endif // BLOCKCHAIN_STRUCTURES_STRUCTURES_H_

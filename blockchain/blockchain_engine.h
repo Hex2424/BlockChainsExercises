@@ -16,8 +16,7 @@
 #include "structures/structures.h"
 
 
-
-
-
+bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine);
+bool BlockchainEngine_printBlock(BlockHandle_t blockHandle);
 
 #endif // BLOCKCHAIN_BLOCKCHAIN_ENGINE_H_

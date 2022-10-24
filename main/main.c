@@ -10,12 +10,19 @@
  *
  * @date 2022-09-15
  */
-#include "../hash/hash.h"
-#include "stdio.h"
-#include "string.h"
-#include "stdlib.h"
+#include "../blockchain/blockchain_engine.h"
+#include "printf.h"
 
 int main(int args, char** argv)
 {
-   
+    BlockchainEngine_t engine;
+
+    if(!BlockchainEngine_initialize(&engine))
+    {
+        printf("Failed to initialize blockchain engine\n");
+        return -1;
+    }
+
+    BlockchainEngine_printBlock(&engine.blockchain.block);
+
 }
