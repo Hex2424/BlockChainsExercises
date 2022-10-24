@@ -11,6 +11,7 @@
  * @date 2022-10-24
  */
 #include "blockchain_engine.h"
+#include "../hash/hash.h"
 
 ////////////////////////////////
 // DEFINES
@@ -28,6 +29,12 @@
 // PRIVATE METHODS
 
 
+
 ////////////////////////////////
 // IMPLEMENTATION
 
+bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
+{
+
+
+}

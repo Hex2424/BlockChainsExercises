@@ -13,6 +13,11 @@
 
 #ifndef BLOCKCHAIN_BLOCKCHAIN_ENGINE_H_
 #define BLOCKCHAIN_BLOCKCHAIN_ENGINE_H_
+#include "structures/structures.h"
+
+
+
+
 
 
 #endif // BLOCKCHAIN_BLOCKCHAIN_ENGINE_H_
