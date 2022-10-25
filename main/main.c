@@ -22,6 +22,10 @@ int main(int args, char** argv)
         printf("Failed to initialize blockchain engine\n");
         return -1;
     }
+    while (true)
+    {
+        BlockchainEngine_mineNewBlock(&engine);
+    }
+    
 
-    // BlockchainEngine_mineNewBlock(&engine);
 }

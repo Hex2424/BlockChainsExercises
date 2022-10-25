@@ -4,7 +4,7 @@ set(PROJECT_LOCATION /home/hex24/Desktop/C_Projects/BlockChainsExercises)
 set(PROJECT_STRING "HashAlgorithm")
 
 
-set(CFLAGS "${CFLAGS} -O3")
+# set(CFLAGS "${CFLAGS} -O3")
 
 set(SRC 
 main/main.c
