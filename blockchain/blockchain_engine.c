@@ -93,10 +93,18 @@ static void generateHashForBlock_(BlockHandle_t block)
     //         printf(")");
     //     }
     // }
-    // printf("\n");
 
-    if(!EHash_hash(&block->header,
-        sizeof(BlockHeader_t),
+    char forGeneration[2 * (HASH_BYTES_LENGTH - 1) + 2*(sizeof("18446744073709551615") - 1) + sizeof("256") - 1];
+    sprintf(forGeneration, "%s%llo%s%llo%d", 
+        block->header.merkelRootHash,
+        block->header.nonce,
+        block->header.prevBlockHash,
+        block->header.timestamp,
+        block->header.difficultyTarget
+    );
+
+    if(!EHash_hash(forGeneration,
+        strlen(forGeneration),
         block->blockHash,
         HASH_BYTES_LENGTH))
     {
@@ -121,6 +129,9 @@ bool BlockchainEngine_printBlock(BlockHandle_t blockHandle)
     blockHandle->header.merkelRootHash,
     blockHandle->header.timestamp,
     blockHandle->header.prevBlockHash);
+
+    srand(blockHandle->header.timestamp);
+
     return SUCCESS;
 }
 
@@ -155,12 +166,18 @@ bool BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t blockchainEngine)
         newNode->block.header.merkelRootHash
     );
 
-    newNode->block.header.difficultyTarget = 2;
+    newNode->block.header.difficultyTarget = 5;
     memcpy(newNode->block.header.prevBlockHash, prevBlockPointer->block.blockHash, HASH_BYTES_LENGTH);
     newNode->block.header.prevBlockHash[HASH_BYTES_LENGTH - 1 ] = '\0';
 
-    for(newNode->block.header.nonce = 0; newNode->block.header.nonce < UINT64_MAX; newNode->block.header.nonce++)
-    {
+    
+
+    while (true)
+    {    
+        // newNode->block.header.nonce = rand();
+        newNode->block.header.nonce = rand();
+        // printf("%d\n", newNode->block.header.nonce);
+
         generateHashForBlock_(&newNode->block);
         // printf("%s\n",newNode->block.blockHash);
         // BlockchainEngine_printBlock(newNode);

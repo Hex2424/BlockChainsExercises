@@ -9,6 +9,7 @@ set(PROJECT_STRING "HashAlgorithm")
 set(SRC 
 main/main.c
 hash/hash.c
+hash/sha.c
 hash/random/random.c
 blockchain/blockchain_engine.c
 )

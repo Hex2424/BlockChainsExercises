@@ -16,6 +16,7 @@
 #include "stdlib.h"
 #include <stdio.h>
 #include "random/random.h"
+#include "sha.h"
 ////////////////////////////////
 // DEFINES
 #define ERROR           0
@@ -53,20 +54,25 @@ static bool formatOutputAsHexadecimal_(char* output, const uint32_t outputSize);
  */
 bool EHash_hash(const char* text, const uint32_t inputSize, char* output, const uint32_t outputSize)
 {
+    SHA256_CTX ctx;
 
-    if(!generateInputSeededInitialHash_(text, inputSize,output, outputSize))
-    {
-        // failed to generate initial hash
-        return ERROR;
-    }
+    sha256_init(&ctx);
+    sha256_update(&ctx, text, inputSize);
+    sha256_final(&ctx, output);
+    sha256_final(&ctx, output + 32);
+    // if(!generateInputSeededInitialHash_(text, inputSize,output, outputSize))
+    // {
+    //     // failed to generate initial hash
+    //     return ERROR;
+    // }
 
-    if(!apply1BitSlidingAlgorithm_(text, inputSize, output, outputSize))
-    {
-        // failed to calculate via sliding bit method
-        return ERROR;
-    }
+    // if(!apply1BitSlidingAlgorithm_(text, inputSize, output, outputSize))
+    // {
+    //     // failed to calculate via sliding bit method
+    //     return ERROR;
+    // }
 
-        // printf("%d\n", output[0]);
+    //     // printf("%d\n", output[0]);
 
     if(!formatOutputAsHexadecimal_(output, outputSize))
     {
@@ -74,7 +80,7 @@ bool EHash_hash(const char* text, const uint32_t inputSize, char* output, const 
     }
 
 
-    // On success
+    // // On success
     return SUCCESS;
     
 }
