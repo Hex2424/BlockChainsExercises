@@ -25,7 +25,8 @@
 #define SUCCESS 1
 #define ERROR   0
 
-typedef struct TransactionNode_t* TransactionNodeHandle_t;
+typedef struct transnode TransactionNode_t;
+typedef struct transnode* TransactionNodeHandle_t;
 
 typedef struct blockchnode BlockchainNode_t;
 typedef struct blockchnode * BlockchainNodeHandle_t;
@@ -58,11 +59,18 @@ typedef struct
 
 
 
-typedef struct 
+struct transnode
 {
     Transaction_t transaction;
-    TransactionNodeHandle_t prevTransaction;
-}TransactionNode_t;
+    TransactionNodeHandle_t nextTransaction;
+};
+
+
+typedef struct 
+{
+    TransactionNodeHandle_t transactionChain;
+    uint32_t currentLength;
+}TransactionsPool_t;
 
 
 typedef struct
@@ -95,12 +103,12 @@ typedef struct
 {
     BlockchainNode_t blockchain;
     User_t users[MAX_USERS];
-    Transaction_t transactionPool[MAX_TRANSACTIONS];
-
+    TransactionsPool_t transactionsPool;
 }BlockchainEngine_t;
 
 typedef BlockchainEngine_t* BlockchainEngineHandle_t;
 typedef Block_t* BlockHandle_t;
-
+typedef TransactionsPool_t* TransactionsPoolHandle_t;
+typedef Transaction_t* TransactionHandle_t;
 
 #endif // BLOCKCHAIN_STRUCTURES_STRUCTURES_H_

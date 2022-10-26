@@ -18,5 +18,6 @@
 
 bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine);
 bool BlockchainEngine_printBlock(BlockHandle_t blockHandle);
-bool BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t blockchainEngine);
+BlockchainNodeHandle_t BlockchainEngine_getLatestBlockNode(BlockchainEngineHandle_t blockchainEngine);
+BlockchainNodeHandle_t BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t blockchainEngine, BlockchainNodeHandle_t latestBlockNode);
 #endif // BLOCKCHAIN_BLOCKCHAIN_ENGINE_H_

@@ -12,6 +12,7 @@ hash/hash.c
 hash/sha.c
 hash/random/random.c
 blockchain/blockchain_engine.c
+blockchain/transactions/transactions.c
 )
 
 cmake_minimum_required(VERSION 3.3)

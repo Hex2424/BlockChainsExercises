@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stdio.h"
+#include "transactions/transactions.h"
 
 ////////////////////////////////
 // DEFINES
@@ -43,6 +44,7 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
 {
     // blockchainEngine
     srand(time(NULL));
+    
     blockchainEngine->blockchain.block.header.timestamp = time(NULL);
     blockchainEngine->blockchain.block.header.difficultyTarget = 1;
     blockchainEngine->blockchain.block.header.nonce = 1;
@@ -67,9 +69,15 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
     blockchainEngine->blockchain.block.blockHash[HASH_BYTES_LENGTH - 1] = '\0';
     blockchainEngine->blockchain.prevBlock = NULL;
 
-    
-
     BlockchainEngine_printBlock(&blockchainEngine->blockchain.block);
+
+    generateRandomUsers_(blockchainEngine);
+
+    
+    TransactionsPool_initialize(&blockchainEngine->transactionsPool);
+    generateRandomTransactions_(blockchainEngine);
+
+
     return SUCCESS;
 }
 
@@ -125,7 +133,7 @@ bool BlockchainEngine_printBlock(BlockHandle_t blockHandle)
     // struct tm* date;
     // date = getTimeAndDate_(blockHandle->header.timestamp);
     
-    printf("<<###########>>\n\n bHash: %s,\n nonce:%llo\n merkelRootHash: %s\n timestamp: %llo\n prevHash: %s\n\n<<###########>>\n", 
+    printf("<<Block>>\n\n bHash: %s,\n nonce:%llo\n merkelRootHash: %s\n timestamp: %llo\n prevHash: %s\n\n<<Block>>\n", 
     blockHandle->blockHash, 
     blockHandle->header.nonce, 
     blockHandle->header.merkelRootHash,
@@ -136,39 +144,26 @@ bool BlockchainEngine_printBlock(BlockHandle_t blockHandle)
     return SUCCESS;
 }
 
-bool BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t blockchainEngine)
+BlockchainNodeHandle_t BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t blockchainEngine, BlockchainNodeHandle_t latestBlockNode)
 {
-    BlockchainNodeHandle_t prevBlockPointer;
     bool foundBlock = false;
-
-    prevBlockPointer = &blockchainEngine->blockchain;
-
-    while (true)
-    {
-        if(prevBlockPointer->prevBlock == NULL)
-        {
-            break;
-        }
-        prevBlockPointer = prevBlockPointer->prevBlock;
-    }
-
     BlockchainNodeHandle_t newNode;
 
     newNode = malloc(sizeof(BlockchainNode_t));
     if(newNode == NULL)
     {
-        return ERROR;
+        return NULL;
     }
     newNode->block.header.timestamp = time(NULL);
 
     generateMerkelRootHash_(
-        prevBlockPointer->block.header.merkelRootHash,
-        prevBlockPointer->block.header.prevBlockHash,
+        latestBlockNode->block.header.merkelRootHash,
+        latestBlockNode->block.header.prevBlockHash,
         newNode->block.header.merkelRootHash
     );
 
     newNode->block.header.difficultyTarget = 5;
-    memcpy(newNode->block.header.prevBlockHash, prevBlockPointer->block.blockHash, HASH_BYTES_LENGTH);
+    memcpy(newNode->block.header.prevBlockHash, latestBlockNode->block.blockHash, HASH_BYTES_LENGTH);
     newNode->block.header.prevBlockHash[HASH_BYTES_LENGTH - 1 ] = '\0';
 
     
@@ -201,9 +196,26 @@ bool BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t blockchainEngine)
         }
 
     }
-    prevBlockPointer->prevBlock = newNode;
     
 }
+
+BlockchainNodeHandle_t BlockchainEngine_getLatestBlockNode(BlockchainEngineHandle_t blockchainEngine)
+{
+    BlockchainNodeHandle_t lastNode;
+
+    lastNode = &blockchainEngine->blockchain;
+
+    while (true)
+    {
+        if(lastNode->prevBlock == NULL)
+        {
+            break;
+        }
+        lastNode = lastNode->prevBlock;
+    }
+    return lastNode;
+}
+
 
 
 static void generateMerkelRootHash_(const char* prevMerkelRootHash, const char* currentBlockHash, char* resultMerkelHash)
@@ -225,7 +237,7 @@ static struct tm* getTimeAndDate_(uint64_t milliseconds)
 
 static void generateRandomUsers_(BlockchainEngineHandle_t blockchainEngine)
 {
-    for(size_t userIdx = 0; userIdx < sizeof(blockchainEngine->users); userIdx++)
+    for(size_t userIdx = 0; userIdx < MAX_USERS; userIdx++)
     {
         blockchainEngine->users[userIdx].name = rand(); // username is a number representing user id
         EHash_hash(&blockchainEngine->users[userIdx].name,
@@ -239,21 +251,27 @@ static void generateRandomUsers_(BlockchainEngineHandle_t blockchainEngine)
 
 static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngine)
 {
-    for(size_t transIdx = 0; transIdx < sizeof(blockchainEngine->transactionPool); transIdx++)
+    for(size_t transIdx = 0; transIdx < MAX_TRANSACTIONS; transIdx++)
     {
         User_t* senderHandle = blockchainEngine->users + (rand() % MAX_USERS);
-        Transaction_t* transHandle = blockchainEngine->transactionPool + transIdx;
-        strcpy(transHandle->sender, senderHandle->publicKey);
-        strcpy(transHandle->receiver, blockchainEngine->users[rand() % MAX_USERS].publicKey);
+        TransactionNodeHandle_t transNodeHandle;
+        transNodeHandle = TransactionsPool_createNewTransactionNode();
+        if(transNodeHandle == NULL)
+        {
+            return;
+        }
 
-        transHandle->sum = rand() % senderHandle->balance;
+        strcpy(transNodeHandle->transaction.sender, senderHandle->publicKey);
+        strcpy(transNodeHandle->transaction.receiver, blockchainEngine->users[rand() % MAX_USERS].publicKey);
 
-        EHash_hash(transHandle->sender,
-            sizeof(Transaction_t) - sizeof(transHandle->transactionId),
-            transHandle->transactionId,
+        transNodeHandle->transaction.sum = rand() % senderHandle->balance;
+
+        EHash_hash(transNodeHandle->transaction.sender,
+            sizeof(Transaction_t) - sizeof(transNodeHandle->transaction.transactionId),
+            transNodeHandle->transaction.transactionId,
             HASH_BYTES_LENGTH - 1
         );
-        transHandle->transactionId[HASH_BYTES_LENGTH - 1] = '\0';
-
+        transNodeHandle->transaction.transactionId[HASH_BYTES_LENGTH - 1] = '\0';
+        TransactionsPool_addNewTransaction(&blockchainEngine->transactionsPool, transNodeHandle);
     }
 }
