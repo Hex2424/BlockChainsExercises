@@ -18,6 +18,9 @@
 #include <stdbool.h>
 
 #define HASH_BYTES_LENGTH   256 / 4 + 1
+#define GENESIS_NULL_HASH   "ca70a0f94ee3cbe5381b7d081dcff1628bcbe8a9d9fe2a2a27230120ef10a85c"
+#define MAX_USERS           1000
+#define MAX_TRANSACTIONS    10000
 
 #define SUCCESS 1
 #define ERROR   0
@@ -65,6 +68,7 @@ typedef struct
 typedef struct
 {
     TransactionNode_t transactions;
+    uint32_t transactionsCount;
 }BlockBody_t;
 
 typedef struct
@@ -90,6 +94,9 @@ struct blockchnode
 typedef struct 
 {
     BlockchainNode_t blockchain;
+    User_t users[MAX_USERS];
+    Transaction_t transactionPool[MAX_TRANSACTIONS];
+
 }BlockchainEngine_t;
 
 typedef BlockchainEngine_t* BlockchainEngineHandle_t;

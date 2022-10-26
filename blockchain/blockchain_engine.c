@@ -20,8 +20,6 @@
 // DEFINES
 
 
-#define GENESIS_NULL_HASH   "ca70a0f94ee3cbe5381b7d081dcff1628bcbe8a9d9fe2a2a27230120ef10a85c"
-
 ////////////////////////////////
 // PRIVATE CONSTANTS
 
@@ -35,14 +33,16 @@
 
 static void generateHashForBlock_(BlockHandle_t block);
 static void generateMerkelRootHash_(const char* prevMerkelRootHash, const char* currentBlockHash, char* resultMerkelHash);
-
+static struct tm* getTimeAndDate_(uint64_t milliseconds);
+static void generateRandomUsers_(BlockchainEngineHandle_t blockchainEngine);
+static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngine);
 ////////////////////////////////
 // IMPLEMENTATION
 
 bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
 {
     // blockchainEngine
-
+    srand(time(NULL));
     blockchainEngine->blockchain.block.header.timestamp = time(NULL);
     blockchainEngine->blockchain.block.header.difficultyTarget = 1;
     blockchainEngine->blockchain.block.header.nonce = 1;
@@ -94,17 +94,17 @@ static void generateHashForBlock_(BlockHandle_t block)
     //     }
     // }
 
-    char forGeneration[2 * (HASH_BYTES_LENGTH - 1) + 2*(sizeof("18446744073709551615") - 1) + sizeof("256") - 1];
-    sprintf(forGeneration, "%s%llo%s%llo%d", 
-        block->header.merkelRootHash,
-        block->header.nonce,
-        block->header.prevBlockHash,
-        block->header.timestamp,
-        block->header.difficultyTarget
-    );
+    // char forGeneration[2 * (HASH_BYTES_LENGTH - 1) + 2*(sizeof("18446744073709551615") - 1) + sizeof("256") - 1];
+    // sprintf(forGeneration, "%s%llo%s%llo%d", 
+    //     block->header.merkelRootHash,
+    //     block->header.nonce,
+    //     block->header.prevBlockHash,
+    //     block->header.timestamp,
+    //     block->header.difficultyTarget
+    // );
 
-    if(!EHash_hash(forGeneration,
-        strlen(forGeneration),
+    if(!EHash_hash(&block->header,
+        sizeof(block->header),
         block->blockHash,
         HASH_BYTES_LENGTH))
     {
@@ -122,15 +122,16 @@ bool BlockchainEngine_printBlock(BlockHandle_t blockHandle)
     {
         return ERROR;
     }
-
-    printf("<<###########>>\n\n bHash: %s,\n nonce:%llo\n merkelRootHash: %s\n timestamp: %llo\n prevHash: %s\n\n<<###########>>\n ", 
+    // struct tm* date;
+    // date = getTimeAndDate_(blockHandle->header.timestamp);
+    
+    printf("<<###########>>\n\n bHash: %s,\n nonce:%llo\n merkelRootHash: %s\n timestamp: %llo\n prevHash: %s\n\n<<###########>>\n", 
     blockHandle->blockHash, 
     blockHandle->header.nonce, 
     blockHandle->header.merkelRootHash,
     blockHandle->header.timestamp,
+    // asctime(date),
     blockHandle->header.prevBlockHash);
-
-    srand(blockHandle->header.timestamp);
 
     return SUCCESS;
 }
@@ -214,4 +215,45 @@ static void generateMerkelRootHash_(const char* prevMerkelRootHash, const char* 
     EHash_hash(buffer, (2 * HASH_BYTES_LENGTH) - 1, resultMerkelHash, HASH_BYTES_LENGTH - 1);
     resultMerkelHash[HASH_BYTES_LENGTH - 1] = '\0';
 
+}
+
+static struct tm* getTimeAndDate_(uint64_t milliseconds)
+{
+    time_t seconds = (time_t)(milliseconds / 1000);
+    return (struct tm*) localtime(&milliseconds);
+}
+
+static void generateRandomUsers_(BlockchainEngineHandle_t blockchainEngine)
+{
+    for(size_t userIdx = 0; userIdx < sizeof(blockchainEngine->users); userIdx++)
+    {
+        blockchainEngine->users[userIdx].name = rand(); // username is a number representing user id
+        EHash_hash(&blockchainEngine->users[userIdx].name,
+        sizeof(uint64_t),
+        blockchainEngine->users[userIdx].publicKey,
+        HASH_BYTES_LENGTH - 1);
+        blockchainEngine->users[userIdx].publicKey[HASH_BYTES_LENGTH - 1] = '\0';
+        blockchainEngine->users[userIdx].balance = rand() % 999900 + 100;           // 100 - 1000000 balance
+    }
+}
+
+static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngine)
+{
+    for(size_t transIdx = 0; transIdx < sizeof(blockchainEngine->transactionPool); transIdx++)
+    {
+        User_t* senderHandle = blockchainEngine->users + (rand() % MAX_USERS);
+        Transaction_t* transHandle = blockchainEngine->transactionPool + transIdx;
+        strcpy(transHandle->sender, senderHandle->publicKey);
+        strcpy(transHandle->receiver, blockchainEngine->users[rand() % MAX_USERS].publicKey);
+
+        transHandle->sum = rand() % senderHandle->balance;
+
+        EHash_hash(transHandle->sender,
+            sizeof(Transaction_t) - sizeof(transHandle->transactionId),
+            transHandle->transactionId,
+            HASH_BYTES_LENGTH - 1
+        );
+        transHandle->transactionId[HASH_BYTES_LENGTH - 1] = '\0';
+
+    }
 }
