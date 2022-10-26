@@ -62,15 +62,21 @@ bool TransactionsPool_addNewTransaction(TransactionsPoolHandle_t transPool, Tran
 
 TransactionNodeHandle_t TransactionsPool_getLastTransactionNode(TransactionsPoolHandle_t transPool)
 {
+    return TransactionsPool_getNthTransactionNode(transPool, transPool->currentLength);
+}
+
+TransactionNodeHandle_t TransactionsPool_getNthTransactionNode(TransactionsPoolHandle_t transPool, uint32_t idx)
+{
     TransactionNodeHandle_t transactionNode = transPool->transactionChain;
 
-    for(uint32_t i = 0; i < transPool->currentLength; i++)
+    for(uint32_t i = 0; i < idx; i++)
     {
         transactionNode = transactionNode->nextTransaction;
     }
 
     return transactionNode;
 }
+
 
 TransactionNodeHandle_t TransactionsPool_GetTransactionById(TransactionsPoolHandle_t transPool, const char* transactionID)
 {
