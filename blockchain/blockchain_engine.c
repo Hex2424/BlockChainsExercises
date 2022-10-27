@@ -69,7 +69,7 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
 
     blockchainEngine->blockchain.block.blockHash[HASH_BYTES_LENGTH - 1] = '\0';
     blockchainEngine->blockchain.nextBlock = NULL;
-    TransactionsPool_initialize(&blockchainEngine->blockchain.block);
+    TransactionsPool_initialize(&blockchainEngine->blockchain.block.body.transactionsPool);
 
     BlockchainEngine_printBlock(&blockchainEngine->blockchain.block);
 
@@ -80,7 +80,7 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
     generateRandomTransactions_(blockchainEngine);
 
     
-    tryAddTransactionsToBlock_(blockchainEngine, 100);
+    tryAddTransactionsToBlock_(blockchainEngine, 10000);
 
     return SUCCESS;
 }
@@ -166,7 +166,7 @@ BlockchainNodeHandle_t BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t bl
         newNode->block.header.merkelRootHash
     );
 
-    newNode->block.header.difficultyTarget = 5;
+    newNode->block.header.difficultyTarget = 2;
     memcpy(newNode->block.header.prevBlockHash, latestBlockNode->block.blockHash, HASH_BYTES_LENGTH);
     newNode->block.header.prevBlockHash[HASH_BYTES_LENGTH - 1 ] = '\0';
 
@@ -299,9 +299,9 @@ void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint3
             return;
         }
 
-        if(blockContainer->block.body.transactionsCount < MAX_TRANSACTIONS_IN_BLOCK)
+        if(blockContainer->block.body.transactionsPool.currentLength < MAX_TRANSACTIONS_IN_BLOCK)
         {
-            TransactionsPool_addNewTransaction(blockContainer, transactionNode);
+            TransactionsPool_addNewTransaction(&blockContainer->block.body.transactionsPool, transactionNode);
         }else
         {
             // transactions full - need mine new block
@@ -312,9 +312,11 @@ void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint3
                 return;
             }
             // mined block is successful
+            // putting transactions in new block
+            TransactionsPool_initialize(&minedBlockNode->block.body.transactionsPool);
+            TransactionsPool_addNewTransaction(&minedBlockNode->block.body.transactionsPool, transactionNode);
             blockContainer->nextBlock = minedBlockNode;
-            TransactionsPool_addNewTransaction(blockContainer->nextBlock, transactionNode);
-
+            
         }
 
     }

@@ -104,10 +104,17 @@ TransactionNodeHandle_t TransactionsPool_GetTransactionById(TransactionsPoolHand
 
 TransactionNodeHandle_t TransactionsPool_pop(TransactionsPoolHandle_t transPool, uint32_t idx)
 {
-    TransactionNodeHandle_t transactionNode = transPool->transactionChain;
-    TransactionNodeHandle_t prev;
+    TransactionNodeHandle_t transactionNode;
+    TransactionNodeHandle_t prev = NULL;
+    transactionNode = transPool->transactionChain;
     for(uint32_t i = 0; i < idx; i++)
     {
+        if(transactionNode == NULL)
+        {
+            transPool->transactionChain->nextTransaction = NULL;
+            transPool->currentLength--;
+            return transactionNode;
+        }
         prev = transactionNode;
         transactionNode = transactionNode->nextTransaction;
 
@@ -121,12 +128,6 @@ TransactionNodeHandle_t TransactionsPool_pop(TransactionsPoolHandle_t transPool,
     }
     transPool->currentLength--;
     return transactionNode;
-}
-
-
-bool TransactionsPool_removeTransaction(TransactionsPoolHandle_t transPool, const char* transactionID)
-{
-
 }
 
 void TransactionsPool_printTransaction(TransactionNodeHandle_t transactionNode)
