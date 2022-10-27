@@ -37,6 +37,7 @@ static void generateMerkelRootHash_(const char* prevMerkelRootHash, const char* 
 static struct tm* getTimeAndDate_(uint64_t milliseconds);
 static void generateRandomUsers_(BlockchainEngineHandle_t blockchainEngine);
 static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngine);
+void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint32_t count);
 ////////////////////////////////
 // IMPLEMENTATION
 
@@ -67,7 +68,8 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
     generateHashForBlock_(&blockchainEngine->blockchain.block);
 
     blockchainEngine->blockchain.block.blockHash[HASH_BYTES_LENGTH - 1] = '\0';
-    blockchainEngine->blockchain.prevBlock = NULL;
+    blockchainEngine->blockchain.nextBlock = NULL;
+    TransactionsPool_initialize(&blockchainEngine->blockchain.block);
 
     BlockchainEngine_printBlock(&blockchainEngine->blockchain.block);
 
@@ -77,6 +79,8 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
     TransactionsPool_initialize(&blockchainEngine->transactionsPool);
     generateRandomTransactions_(blockchainEngine);
 
+    
+    tryAddTransactionsToBlock_(blockchainEngine, 100);
 
     return SUCCESS;
 }
@@ -196,6 +200,7 @@ BlockchainNodeHandle_t BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t bl
         }
 
     }
+    return newNode;
     
 }
 
@@ -207,11 +212,11 @@ BlockchainNodeHandle_t BlockchainEngine_getLatestBlockNode(BlockchainEngineHandl
 
     while (true)
     {
-        if(lastNode->prevBlock == NULL)
+        if(lastNode->nextBlock == NULL)
         {
             break;
         }
-        lastNode = lastNode->prevBlock;
+        lastNode = lastNode->nextBlock;
     }
     return lastNode;
 }
@@ -273,5 +278,44 @@ static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngin
         );
         transNodeHandle->transaction.transactionId[HASH_BYTES_LENGTH - 1] = '\0';
         TransactionsPool_addNewTransaction(&blockchainEngine->transactionsPool, transNodeHandle);
+    }
+}
+
+void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint32_t count)
+{
+    for(uint32_t i = 0; i < count; i++)
+    {
+        TransactionNodeHandle_t transactionNode;
+        transactionNode = TransactionsPool_pop(&blockchainEngine->transactionsPool, rand() % blockchainEngine->transactionsPool.currentLength);
+        if(transactionNode == NULL)
+        {
+            return;
+        }
+
+        BlockchainNodeHandle_t blockContainer;
+        blockContainer = BlockchainEngine_getLatestBlockNode(blockchainEngine);
+        if(blockContainer == NULL)
+        {
+            return;
+        }
+
+        if(blockContainer->block.body.transactionsCount < MAX_TRANSACTIONS_IN_BLOCK)
+        {
+            TransactionsPool_addNewTransaction(blockContainer, transactionNode);
+        }else
+        {
+            // transactions full - need mine new block
+            BlockchainNodeHandle_t minedBlockNode;
+            minedBlockNode = BlockchainEngine_mineNewBlock(blockchainEngine, blockContainer);
+            if(minedBlockNode == NULL)
+            {
+                return;
+            }
+            // mined block is successful
+            blockContainer->nextBlock = minedBlockNode;
+            TransactionsPool_addNewTransaction(blockContainer->nextBlock, transactionNode);
+
+        }
+
     }
 }

@@ -17,13 +17,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define HASH_BYTES_LENGTH   256 / 4 + 1
-#define GENESIS_NULL_HASH   "ca70a0f94ee3cbe5381b7d081dcff1628bcbe8a9d9fe2a2a27230120ef10a85c"
-#define MAX_USERS           1000
-#define MAX_TRANSACTIONS    10000
+#define HASH_BYTES_LENGTH               256 / 4 + 1
+#define GENESIS_NULL_HASH               "ca70a0f94ee3cbe5381b7d081dcff1628bcbe8a9d9fe2a2a27230120ef10a85c"
+#define MAX_USERS                       1000
+#define MAX_TRANSACTIONS                10000
+#define MAX_TRANSACTIONS_IN_BLOCK       100
 
-#define SUCCESS 1
-#define ERROR   0
+#define SUCCESS                         1
+#define ERROR                           0
 
 typedef struct transnode TransactionNode_t;
 typedef struct transnode* TransactionNodeHandle_t;
@@ -75,7 +76,7 @@ typedef struct
 
 typedef struct
 {
-    TransactionNode_t transactions;
+    TransactionsPool_t transactionsPool;
     uint32_t transactionsCount;
 }BlockBody_t;
 
@@ -96,7 +97,7 @@ typedef struct
 struct blockchnode
 {
     Block_t block;
-    BlockchainNodeHandle_t prevBlock;
+    BlockchainNodeHandle_t nextBlock;
 };
 
 typedef struct 

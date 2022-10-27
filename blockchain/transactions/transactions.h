@@ -22,4 +22,5 @@ bool TransactionsPool_addNewTransaction(TransactionsPoolHandle_t transPool, Tran
 void TransactionsPool_printTransaction(TransactionNodeHandle_t transactionNode);
 TransactionNodeHandle_t TransactionsPool_GetTransactionById(TransactionsPoolHandle_t transPool, const char* transactionID);
 TransactionNodeHandle_t TransactionsPool_getNthTransactionNode(TransactionsPoolHandle_t transPool, uint32_t idx);
+TransactionNodeHandle_t TransactionsPool_pop(TransactionsPoolHandle_t transPool, uint32_t idx);
 #endif // BLOCKCHAIN_TRANSACTIONS_TRANSACTIONS_H_

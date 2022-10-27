@@ -36,6 +36,7 @@
 void TransactionsPool_initialize(TransactionsPoolHandle_t transPool)
 {
     transPool->currentLength = 0;
+    transPool->transactionChain = TransactionsPool_createNewTransactionNode();
 }
 
 
@@ -78,6 +79,8 @@ TransactionNodeHandle_t TransactionsPool_getNthTransactionNode(TransactionsPoolH
 }
 
 
+
+
 TransactionNodeHandle_t TransactionsPool_GetTransactionById(TransactionsPoolHandle_t transPool, const char* transactionID)
 {
     TransactionNodeHandle_t transactionNode = transPool->transactionChain;
@@ -98,6 +101,28 @@ TransactionNodeHandle_t TransactionsPool_GetTransactionById(TransactionsPoolHand
 
     return NULL;
 }
+
+TransactionNodeHandle_t TransactionsPool_pop(TransactionsPoolHandle_t transPool, uint32_t idx)
+{
+    TransactionNodeHandle_t transactionNode = transPool->transactionChain;
+    TransactionNodeHandle_t prev;
+    for(uint32_t i = 0; i < idx; i++)
+    {
+        prev = transactionNode;
+        transactionNode = transactionNode->nextTransaction;
+
+    }
+    if(prev == NULL)
+    {
+        transPool->transactionChain->nextTransaction = NULL;
+    }else
+    {
+        prev->nextTransaction = transactionNode->nextTransaction;
+    }
+    transPool->currentLength--;
+    return transactionNode;
+}
+
 
 bool TransactionsPool_removeTransaction(TransactionsPoolHandle_t transPool, const char* transactionID)
 {
