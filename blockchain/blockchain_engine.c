@@ -38,6 +38,7 @@ static struct tm* getTimeAndDate_(uint64_t milliseconds);
 static void generateRandomUsers_(BlockchainEngineHandle_t blockchainEngine);
 static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngine);
 void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint32_t count);
+static void updateUsersBalanceByTransaction_(BlockchainEngineHandle_t blockchainEngine, TransactionNodeHandle_t transactionNode);
 ////////////////////////////////
 // IMPLEMENTATION
 
@@ -314,10 +315,30 @@ void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint3
             // mined block is successful
             // putting transactions in new block
             TransactionsPool_initialize(&minedBlockNode->block.body.transactionsPool);
-            TransactionsPool_addNewTransaction(&minedBlockNode->block.body.transactionsPool, transactionNode);
-            blockContainer->nextBlock = minedBlockNode;
+            if(TransactionsPool_addNewTransaction(&minedBlockNode->block.body.transactionsPool, transactionNode))
+            {
+                updateUsersBalanceByTransaction_(blockchainEngine, transactionNode);
+                blockContainer->nextBlock = minedBlockNode;
+            }
             
         }
 
+    }
+}
+
+static void updateUsersBalanceByTransaction_(BlockchainEngineHandle_t blockchainEngine, TransactionNodeHandle_t transactionNode)
+{
+    for(size_t userIdx = 0; userIdx < MAX_USERS; userIdx++)
+    {
+        if(strcmp(blockchainEngine->users[userIdx].publicKey, transactionNode->transaction.sender) == 0)
+        {
+            blockchainEngine->users[userIdx].balance -= transactionNode->transaction.sum;
+            continue;
+        }
+
+        if(strcmp(blockchainEngine->users[userIdx].publicKey, transactionNode->transaction.receiver) == 0)
+        {
+            blockchainEngine->users[userIdx].balance += transactionNode->transaction.sum;
+        }
     }
 }
