@@ -35,10 +35,10 @@
 static void generateHashForBlock_(BlockHandle_t block);
 static void generateMerkelRootHash_(const char* prevMerkelRootHash, const char* currentBlockHash, char* resultMerkelHash);
 static struct tm* getTimeAndDate_(uint64_t milliseconds);
-static void generateRandomUsers_(BlockchainEngineHandle_t blockchainEngine);
 static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngine);
 void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint32_t count);
 static void updateUsersBalanceByTransaction_(BlockchainEngineHandle_t blockchainEngine, TransactionNodeHandle_t transactionNode);
+static bool fillUsersFromFile_(BlockchainEngineHandle_t blockchainEngine, const char* filename);
 ////////////////////////////////
 // IMPLEMENTATION
 
@@ -46,7 +46,12 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
 {
     // blockchainEngine
     srand(time(NULL));
-    
+    if(!fillUsersFromFile_(blockchainEngine, "../blockchain/blockchainFiles/users"))
+    {
+        printf("Please fill users to blockchain firstly before running transaction adding tests\n");
+        return ERROR;
+    }
+
     blockchainEngine->blockchain.block.header.timestamp = time(NULL);
     blockchainEngine->blockchain.block.header.difficultyTarget = 1;
     blockchainEngine->blockchain.block.header.nonce = 1;
@@ -74,15 +79,27 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine)
 
     BlockchainEngine_printBlock(&blockchainEngine->blockchain.block);
 
-    generateRandomUsers_(blockchainEngine);
+    // generateRandomUsers_(blockchainEngine);
 
     
     TransactionsPool_initialize(&blockchainEngine->transactionsPool);
     generateRandomTransactions_(blockchainEngine);
 
     
-    tryAddTransactionsToBlock_(blockchainEngine, 10000);
+    tryAddTransactionsToBlock_(blockchainEngine, MAX_TRANSACTIONS);
 
+    return SUCCESS;
+}
+
+static bool fillUsersFromFile_(BlockchainEngineHandle_t blockchainEngine, const char* filename)
+{
+    FILE* usersFile;
+    usersFile = fopen(filename, "r");
+    if(usersFile == NULL)
+    {
+        return ERROR;
+    }
+    fread(blockchainEngine->users,1, sizeof(User_t) * MAX_USERS, usersFile);
     return SUCCESS;
 }
 
@@ -167,12 +184,12 @@ BlockchainNodeHandle_t BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t bl
         newNode->block.header.merkelRootHash
     );
 
-    newNode->block.header.difficultyTarget = 2;
+    newNode->block.header.difficultyTarget = 5;
     memcpy(newNode->block.header.prevBlockHash, latestBlockNode->block.blockHash, HASH_BYTES_LENGTH);
     newNode->block.header.prevBlockHash[HASH_BYTES_LENGTH - 1 ] = '\0';
 
     
-
+    printf("[>>] Mining block:\n");
     while (true)
     {    
         // newNode->block.header.nonce = rand();
@@ -188,7 +205,7 @@ BlockchainNodeHandle_t BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t bl
             if(newNode->block.blockHash[HASH_BYTES_LENGTH - charIdx - 1] != '0')
             {
                 foundBlock = false;
-                break;
+                break; printf("[>>] Mining block:\n");
             }
 
             foundBlock = true;
@@ -241,8 +258,10 @@ static struct tm* getTimeAndDate_(uint64_t milliseconds)
     return (struct tm*) localtime(&milliseconds);
 }
 
-static void generateRandomUsers_(BlockchainEngineHandle_t blockchainEngine)
+void BlockchainEngine_generateRandomUsers(BlockchainEngineHandle_t blockchainEngine)
 {
+    FILE* usersFile;
+    usersFile = fopen("../blockchain/blockchainFiles/users", "w");
     for(size_t userIdx = 0; userIdx < MAX_USERS; userIdx++)
     {
         blockchainEngine->users[userIdx].name = rand(); // username is a number representing user id
@@ -252,7 +271,16 @@ static void generateRandomUsers_(BlockchainEngineHandle_t blockchainEngine)
         HASH_BYTES_LENGTH - 1);
         blockchainEngine->users[userIdx].publicKey[HASH_BYTES_LENGTH - 1] = '\0';
         blockchainEngine->users[userIdx].balance = rand() % 999900 + 100;           // 100 - 1000000 balance
+
+        printf("[>>] Generating user%d:\n\tname:%llo,\n\tpublicKey:%s,\n\tbalance:%llo\n\n",
+        userIdx,
+        blockchainEngine->users[userIdx].name,
+        blockchainEngine->users[userIdx].publicKey,
+        blockchainEngine->users[userIdx].balance);
+
+        fwrite(blockchainEngine->users + userIdx, 1, sizeof(User_t), usersFile);
     }
+    fclose(usersFile);
 }
 
 static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngine)
@@ -299,7 +327,8 @@ void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint3
         {
             return;
         }
-
+        printf("[>>] Trying add transaction to latest block\n");
+        TransactionsPool_printTransaction(transactionNode);
         if(blockContainer->block.body.transactionsPool.currentLength < MAX_TRANSACTIONS_IN_BLOCK)
         {
             TransactionsPool_addNewTransaction(&blockContainer->block.body.transactionsPool, transactionNode);

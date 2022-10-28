@@ -20,4 +20,5 @@ bool BlockchainEngine_initialize(BlockchainEngineHandle_t blockchainEngine);
 bool BlockchainEngine_printBlock(BlockHandle_t blockHandle);
 BlockchainNodeHandle_t BlockchainEngine_getLatestBlockNode(BlockchainEngineHandle_t blockchainEngine);
 BlockchainNodeHandle_t BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t blockchainEngine, BlockchainNodeHandle_t latestBlockNode);
+void BlockchainEngine_generateRandomUsers(BlockchainEngineHandle_t blockchainEngine);
 #endif // BLOCKCHAIN_BLOCKCHAIN_ENGINE_H_

@@ -1,10 +1,23 @@
 # **BlockChainsExercises (v0.1)** #
-
-**EHash hashavimo funkcija:
-* **Feature: (256 bitai yra tik nustatyta, galima nustatyti betkokį ilgį)**
+Blockchain interface for mining new blocks and adding new transactions.
 
 # Naudojimas:
+Getting help page of EBlockChain
 ```sh
-    HashAlgorithm <text_to_hash> / HashAlgorithm -f <filepath>
+    ./HashAlgorithm -help
 ```
-* Palaikomas ranka ivedimas;
+Filling blockchain with fake users
+```sh
+    ./HashAlgorithm -gen_rand_users
+```
+Running auto transaction creating and adding to blocks / blocks mining if needed
+```sh
+    ./HashAlgorithm -run_testing
+```
+
+To get output into file do following:
+
+**Example:**
+```sh
+    ./HashAlgorithm -run_testing > output.txt
+```
