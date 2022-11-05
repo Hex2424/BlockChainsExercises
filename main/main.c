@@ -15,39 +15,39 @@
 
 int main(int args, char** argv)
 {
-    // if(args == 1 || (strcmp(argv[1], "-help") == 0) || (strcmp(argv[1], "-h") == 0))
-    // {
-    //     // help command
-    //     FILE* header;
-    //     char c;
-    //     header = fopen("../blockchain/GUI/eblockchain_header.txt", "r");
-    //     if(header == NULL)
-    //     {
-    //         return -1;
-    //     }
-    //     int readed = 1;
-    //     while (readed > 0)
-    //     {
-    //         readed = fread(&c, 1, 1, header);
-    //         printf("%c", c);
-    //     }
+    if(args == 1 || (strcmp(argv[1], "-help") == 0) || (strcmp(argv[1], "-h") == 0))
+    {
+        // help command
+        FILE* header;
+        char c;
+        header = fopen("../blockchain/GUI/eblockchain_header.txt", "r");
+        if(header == NULL)
+        {
+            return -1;
+        }
+        int readed = 1;
+        while (readed > 0)
+        {
+            readed = fread(&c, 1, 1, header);
+            printf("%c", c);
+        }
 
-    //     return 0;
-    // }
+        return 0;
+    }
     BlockchainEngine_t engine;
-    // if(strcmp(argv[1], "-gen_rand_users") == 0)
-    // {
-    //     // generate random users
-    //     BlockchainEngine_generateRandomUsers(&engine);
-    //     return 0;
-    // }
+    if(strcmp(argv[1], "-gen_rand_users") == 0)
+    {
+        // generate random users
+        BlockchainEngine_generateRandomUsers(&engine);
+        return 0;
+    }
 
-    // if(strcmp(argv[1], "-run_testing") == 0)
-    // {
-    //     // generate random users
-    //     BlockchainEngine_initialize(&engine);
-    //     return 0;
-    // }
+    if(strcmp(argv[1], "-run_testing") == 0)
+    {
+        // generate random users
+        BlockchainEngine_initialize(&engine);
+        return 0;
+    }
     BlockchainEngine_initialize(&engine);
     // if(strcmp(argv[1], "-gen_rand_trans") == 0)
 
