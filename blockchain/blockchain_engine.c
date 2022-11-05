@@ -19,7 +19,7 @@
 
 ////////////////////////////////
 // DEFINES
-
+#define BLOCK_CANDIDATES_COUNT    5
 
 ////////////////////////////////
 // PRIVATE CONSTANTS
@@ -40,6 +40,8 @@ static void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine
 static void updateUsersBalanceByTransaction_(BlockchainEngineHandle_t blockchainEngine, TransactionNodeHandle_t transactionNode);
 static bool fillUsersFromFile_(BlockchainEngineHandle_t blockchainEngine, const char* filename);
 static bool isTransactionValidToSend_(TransactionNodeHandle_t transaction, User_t* sender);
+
+
 ////////////////////////////////
 // IMPLEMENTATION
 
@@ -170,55 +172,72 @@ bool BlockchainEngine_printBlock(BlockHandle_t blockHandle)
 BlockchainNodeHandle_t BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t blockchainEngine, BlockchainNodeHandle_t latestBlockNode)
 {
     bool foundBlock = false;
-    BlockchainNodeHandle_t newNode;
+    BlockchainNodeHandle_t newNode[BLOCK_CANDIDATES_COUNT];
+    uint32_t maxBlockMineRetries = 100;
 
-    newNode = malloc(sizeof(BlockchainNode_t));
-    if(newNode == NULL)
+    for(uint8_t i = 0; i < BLOCK_CANDIDATES_COUNT; i++)
     {
-        return NULL;
-    }
-    newNode->block.header.timestamp = time(NULL);
-    
-    if(!generateMerkelTreeHashFromBlockchain_(blockchainEngine, newNode->block.header.merkelRootHash))
-    {
-        return NULL;
-    }
-    
-    newNode->block.header.difficultyTarget = 5;
-    memcpy(newNode->block.header.prevBlockHash, latestBlockNode->block.blockHash, HASH_BYTES_LENGTH);
-    newNode->block.header.prevBlockHash[HASH_BYTES_LENGTH - 1 ] = '\0';
+        newNode[i] = malloc(sizeof(BlockchainNode_t));
+        if(newNode == NULL)
+        {
+            return NULL;
+        }
+        newNode[i]->block.header.timestamp = time(NULL);
+        
+        if(!generateMerkelTreeHashFromBlockchain_(blockchainEngine, newNode[i]->block.header.merkelRootHash))
+        {
+            return NULL;
+        }
+        
+        newNode[i]->block.header.difficultyTarget = 5;
+        memcpy(newNode[i]->block.header.prevBlockHash, latestBlockNode->block.blockHash, HASH_BYTES_LENGTH);
+        newNode[i]->block.header.prevBlockHash[HASH_BYTES_LENGTH - 1 ] = '\0';
 
-    
+    }
     printf("[>>] Mining block:\n");
     while (true)
-    {    
-        // newNode->block.header.nonce = rand();
-        newNode->block.header.nonce = rand();
-        // printf("%d\n", newNode->block.header.nonce);
-
-        generateHashForBlock_(&newNode->block);
-        // printf("%s\n",newNode->block.blockHash);
-        // BlockchainEngine_printBlock(newNode);
-
-        for(uint8_t charIdx = 0; charIdx < newNode->block.header.difficultyTarget; charIdx++)
+    {   
+        for(uint8_t i = 0; i < BLOCK_CANDIDATES_COUNT; i++)
         {
-            if(newNode->block.blockHash[HASH_BYTES_LENGTH - charIdx - 1] != '0')
+            for(uint32_t blockMineTrials = 0; blockMineTrials < maxBlockMineRetries; blockMineTrials++)
             {
-                foundBlock = false;
-                break; printf("[>>] Mining block:\n");
+                newNode[i]->block.header.nonce = rand();
+                // printf("%d\n", newNode->block.header.nonce);
+
+                generateHashForBlock_(&newNode[i]->block);
+                // printf("%s\n",newNode->block.blockHash);
+                // BlockchainEngine_printBlock(newNode);
+
+                for(uint8_t charIdx = 0; charIdx < newNode[i]->block.header.difficultyTarget; charIdx++)
+                {
+                    if(newNode[i]->block.blockHash[HASH_BYTES_LENGTH - charIdx - 1] != '0')
+                    {
+                        foundBlock = false;
+                        break; 
+                        printf("[>>] Mining block:\n");
+                    }
+
+                    foundBlock = true;
+
+                }
+
+                if(foundBlock)
+                {
+                    BlockchainEngine_printBlock(newNode[i]);
+                    for(uint8_t deallocateIdx = 0; deallocateIdx < BLOCK_CANDIDATES_COUNT; deallocateIdx++)
+                    {
+                        if(deallocateIdx != i)
+                        {
+                            free(newNode[deallocateIdx]);
+                        }
+                    }
+                    return newNode[i];
+                }
             }
-
-            foundBlock = true;
-
         }
-        if(foundBlock)
-        {
-            BlockchainEngine_printBlock(newNode);
-            break;
-        }
+        maxBlockMineRetries *= 2;
 
     }
-    return newNode;
     
 }
 
