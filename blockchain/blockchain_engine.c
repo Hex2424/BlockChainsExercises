@@ -39,6 +39,7 @@ static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngin
 void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint32_t count);
 static void updateUsersBalanceByTransaction_(BlockchainEngineHandle_t blockchainEngine, TransactionNodeHandle_t transactionNode);
 static bool fillUsersFromFile_(BlockchainEngineHandle_t blockchainEngine, const char* filename);
+static bool isTransactionValidToSend_(TransactionNodeHandle_t transaction, User_t* sender);
 ////////////////////////////////
 // IMPLEMENTATION
 
@@ -380,7 +381,7 @@ static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngin
         strcpy(transNodeHandle->transaction.sender, senderHandle->publicKey);
         strcpy(transNodeHandle->transaction.receiver, blockchainEngine->users[rand() % MAX_USERS].publicKey);
 
-        transNodeHandle->transaction.sum = rand() % senderHandle->balance;
+        transNodeHandle->transaction.sum = rand() % (senderHandle->balance + 10000); // 10000 for handling error
 
         EHash_hash(transNodeHandle->transaction.sender,
             sizeof(Transaction_t) - sizeof(transNodeHandle->transaction.transactionId),
@@ -388,21 +389,41 @@ static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngin
             HASH_BYTES_LENGTH - 1
         );
         transNodeHandle->transaction.transactionId[HASH_BYTES_LENGTH - 1] = '\0';
-        TransactionsPool_addNewTransaction(&blockchainEngine->transactionsPool, transNodeHandle);
+        // verifing  transaction validity
+        if(isTransactionValidToSend_(transNodeHandle, senderHandle))
+        {
+            TransactionsPool_addNewTransaction(&blockchainEngine->transactionsPool, transNodeHandle);
+        }else
+        {
+            printf("Found invalid transaction ID: %s\n", transNodeHandle->transaction.transactionId);
+        }
+        
+        
     }
 }
+
+static bool isTransactionValidToSend_(TransactionNodeHandle_t transaction, User_t* sender)
+{
+    return transaction->transaction.sum <= sender->balance;
+}
+
 
 void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint32_t count)
 {
     for(uint32_t i = 0; i < count; i++)
     {
         TransactionNodeHandle_t transactionNode;
+        if(blockchainEngine->transactionsPool.currentLength == 0)
+        {
+            return;
+        }
+
         transactionNode = TransactionsPool_pop(&blockchainEngine->transactionsPool, rand() % blockchainEngine->transactionsPool.currentLength);
         if(transactionNode == NULL)
         {
             return;
         }
-
+        
         BlockchainNodeHandle_t blockContainer;
         blockContainer = BlockchainEngine_getLatestBlockNode(blockchainEngine);
         if(blockContainer == NULL)
