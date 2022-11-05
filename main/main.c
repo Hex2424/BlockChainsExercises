@@ -48,7 +48,7 @@ int main(int args, char** argv)
     //     BlockchainEngine_initialize(&engine);
     //     return 0;
     // }
-BlockchainEngine_initialize(&engine);
+    BlockchainEngine_initialize(&engine);
     // if(strcmp(argv[1], "-gen_rand_trans") == 0)
 
 

@@ -33,7 +33,7 @@
 // PRIVATE METHODS
 
 static void generateHashForBlock_(BlockHandle_t block);
-static void generateMerkelRootHash_(const char* prevMerkelRootHash, const char* currentBlockHash, char* resultMerkelHash);
+static bool generateMerkelTreeHashFromBlockchain_(const BlockchainEngineHandle_t engine, char* merkelHash);
 static struct tm* getTimeAndDate_(uint64_t milliseconds);
 static void generateRandomTransactions_(BlockchainEngineHandle_t blockchainEngine);
 void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint32_t count);
@@ -177,13 +177,12 @@ BlockchainNodeHandle_t BlockchainEngine_mineNewBlock(BlockchainEngineHandle_t bl
         return NULL;
     }
     newNode->block.header.timestamp = time(NULL);
-
-    generateMerkelRootHash_(
-        latestBlockNode->block.header.merkelRootHash,
-        latestBlockNode->block.header.prevBlockHash,
-        newNode->block.header.merkelRootHash
-    );
-
+    
+    if(!generateMerkelTreeHashFromBlockchain_(blockchainEngine, newNode->block.header.merkelRootHash))
+    {
+        return NULL;
+    }
+    
     newNode->block.header.difficultyTarget = 5;
     memcpy(newNode->block.header.prevBlockHash, latestBlockNode->block.blockHash, HASH_BYTES_LENGTH);
     newNode->block.header.prevBlockHash[HASH_BYTES_LENGTH - 1 ] = '\0';
@@ -227,7 +226,11 @@ BlockchainNodeHandle_t BlockchainEngine_getLatestBlockNode(BlockchainEngineHandl
     BlockchainNodeHandle_t lastNode;
 
     lastNode = &blockchainEngine->blockchain;
-
+    if(lastNode == NULL)
+    {
+        return NULL;
+    }
+    
     while (true)
     {
         if(lastNode->nextBlock == NULL)
@@ -239,18 +242,97 @@ BlockchainNodeHandle_t BlockchainEngine_getLatestBlockNode(BlockchainEngineHandl
     return lastNode;
 }
 
-
-
-static void generateMerkelRootHash_(const char* prevMerkelRootHash, const char* currentBlockHash, char* resultMerkelHash)
+uint32_t BlockchainEngine_getSize(BlockchainEngineHandle_t blockchainEngine)
 {
-    char buffer[(2 * HASH_BYTES_LENGTH) - 1];
-    memcpy(buffer, prevMerkelRootHash, HASH_BYTES_LENGTH - 1);
-    memcpy(buffer + HASH_BYTES_LENGTH - 1, currentBlockHash, HASH_BYTES_LENGTH);
+    BlockchainNodeHandle_t lastNode;
+    uint32_t size;
+    size = 0;
 
-    EHash_hash(buffer, (2 * HASH_BYTES_LENGTH) - 1, resultMerkelHash, HASH_BYTES_LENGTH - 1);
-    resultMerkelHash[HASH_BYTES_LENGTH - 1] = '\0';
+    lastNode = &blockchainEngine->blockchain;
+    
+    while (true)
+    {
+        size++;
+        if(lastNode->nextBlock == NULL)
+        {
+            break;
+        }
+        lastNode = lastNode->nextBlock;
+    }
+    return size;
+}
+
+static bool generateMerkelTreeHashFromBlockchain_(const BlockchainEngineHandle_t engine, char* merkelHash)
+{
+    MerkelNodeHandle_t nodesList;
+    uint32_t merkelTreeSize;
+    uint16_t merkelRootLayersCount;
+    BlockchainNodeHandle_t currentNode;
+
+    merkelTreeSize = BlockchainEngine_getSize(engine);
+    nodesList = malloc(merkelTreeSize * sizeof(MerkelNode_t));
+    if(nodesList == NULL)
+    {
+        // incase of failed malloc
+        return ERROR;
+    }
+
+    merkelRootLayersCount = (merkelTreeSize + 1) / 2;
+    currentNode = &engine->blockchain;
+
+    for(uint32_t i = 0; i < merkelTreeSize; i++)
+    {
+        nodesList[i].left = NULL;
+        nodesList[i].right = NULL;
+        strcpy(nodesList[i].merkelHash, currentNode->block.blockHash);
+        currentNode = currentNode->nextBlock;
+    }
+    
+    while (true)
+    {
+        uint32_t nodeIdx = 0;
+        for(uint32_t i = 0; i < merkelTreeSize; i += 2, nodeIdx++)
+        {
+            char buffer[(2 * HASH_BYTES_LENGTH) - 1];
+            memcpy(buffer, nodesList[i].merkelHash, HASH_BYTES_LENGTH - 1);
+            // nodesList[nodeIdx].left = nodesList[i];
+
+            if((i + 1) < merkelTreeSize)
+            {
+                // has pair
+                memcpy(buffer + HASH_BYTES_LENGTH - 1, nodesList[i + 1].merkelHash, HASH_BYTES_LENGTH);
+                // nodesList[nodeIdx].right = nodesList[i + 1];
+
+            }else if(merkelRootLayersCount == 0)
+            {
+                // no pair, ended hashing
+                strcpy(merkelHash, nodesList[0].merkelHash);
+                free(nodesList);
+                return SUCCESS;
+            }else
+            {
+                // same hash apply if no pair
+                memcpy(buffer + HASH_BYTES_LENGTH - 1, nodesList[i].merkelHash, HASH_BYTES_LENGTH);
+                // nodesList[nodeIdx].right = nodesList[i];
+            }
+            
+
+            EHash_hash(buffer, (2 * HASH_BYTES_LENGTH) - 1, nodesList[nodeIdx].merkelHash, HASH_BYTES_LENGTH - 1);
+            nodesList[nodeIdx].merkelHash[HASH_BYTES_LENGTH - 1] = '\0';
+        }
+        merkelTreeSize = nodeIdx + 1;
+        merkelRootLayersCount--;
+        if(merkelRootLayersCount == 0)
+        {
+            strcpy(merkelHash, nodesList[0].merkelHash);
+            free(nodesList);
+            return SUCCESS;
+        }
+    }
+    
 
 }
+
 
 static struct tm* getTimeAndDate_(uint64_t milliseconds)
 {
@@ -327,8 +409,8 @@ void tryAddTransactionsToBlock_(BlockchainEngineHandle_t blockchainEngine, uint3
         {
             return;
         }
-        printf("[>>] Trying add transaction to latest block\n");
-        TransactionsPool_printTransaction(transactionNode);
+        // printf("[>>] Trying add transaction to latest block\n");
+        // TransactionsPool_printTransaction(transactionNode);
         if(blockContainer->block.body.transactionsPool.currentLength < MAX_TRANSACTIONS_IN_BLOCK)
         {
             TransactionsPool_addNewTransaction(&blockContainer->block.body.transactionsPool, transactionNode);
